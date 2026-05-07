@@ -1,4 +1,4 @@
-# Projektor — Event & Meetup Platform
+# EventAppGroup17 — Event & Meetup Platform
 
 A mobile app for discovering and managing events, built for the NOVA IMS Mobile Apps Development course (Group 17).
 
