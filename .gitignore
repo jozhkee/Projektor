@@ -1,0 +1,35 @@
+# Built output - covers root and all submodules (e.g. app/build/)
+**/build/
+
+# Gradle
+.gradle/
+gradle/wrapper/gradle-wrapper.jar
+
+# Local SDK path - machine-specific, never commit
+local.properties
+
+# Android Studio / IntelliJ IDEA
+*.iml
+.idea/caches/
+.idea/libraries/
+.idea/modules.xml
+.idea/workspace.xml
+.idea/navEditor.xml
+.idea/assetWizardSettings.xml
+.idea/deploymentTargetSelector.xml
+
+# Kotlin build metadata
+.kotlin/
+
+# VS Code
+.vscode/
+
+# macOS
+.DS_Store
+
+# Native build
+.externalNativeBuild/
+.cxx/
+
+# Profiling
+/captures
