@@ -10,13 +10,14 @@ local.properties
 
 # Android Studio / IntelliJ IDEA
 *.iml
-.idea/caches/
-.idea/libraries/
-.idea/modules.xml
-.idea/workspace.xml
-.idea/navEditor.xml
-.idea/assetWizardSettings.xml
-.idea/deploymentTargetSelector.xml
+**/.idea/caches/
+**/.idea/libraries/
+**/.idea/modules.xml
+**/.idea/workspace.xml
+**/.idea/navEditor.xml
+**/.idea/assetWizardSettings.xml
+**/.idea/deploymentTargetSelector.xml
+**/.idea/deviceManager.xml
 
 # Kotlin build metadata
 .kotlin/
@@ -33,3 +34,10 @@ local.properties
 
 # Profiling
 /captures
+
+# Python
+__pycache__/
+*.py[cod]
+
+# SQLite database (dev artifact — seed with seed.py)
+*.db
