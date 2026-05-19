@@ -167,20 +167,18 @@ fun AppNavigation() {
                 onRegister = {
                     val user = currentUser
                     if (user != null && !isRegistered && !isFull) {
-                        scope.launch {
-                            try {
-                                val resp = ApiClient.api.createRegistration(
-                                    ApiClient.bearerToken,
-                                    CreateRegistrationRequest(userId = user.id, eventId = eventId)
-                                )
-                                if (resp.isSuccessful) {
-                                    val body = resp.body()!!
-                                    registrations.add(body.id to eventId)
-                                    val idx = events.indexOfFirst { it.id == eventId }
-                                    if (idx >= 0) events[idx] = events[idx].copy(participantCount = events[idx].participantCount + 1)
-                                }
-                            } catch (_: Exception) {}
-                        }
+                        try {
+                            val resp = ApiClient.api.createRegistration(
+                                ApiClient.bearerToken,
+                                CreateRegistrationRequest(userId = user.id, eventId = eventId)
+                            )
+                            if (resp.isSuccessful) {
+                                val body = resp.body()!!
+                                registrations.add(body.id to eventId)
+                                val idx = events.indexOfFirst { it.id == eventId }
+                                if (idx >= 0) events[idx] = events[idx].copy(participantCount = events[idx].participantCount + 1)
+                            }
+                        } catch (_: Exception) {}
                     }
                 },
                 onBack = { navController.popBackStack() }
@@ -216,6 +214,16 @@ fun AppNavigation() {
         }
 
         composable(Routes.ADMIN_DASHBOARD) {
+            LaunchedEffect(Unit) {
+                try {
+                    val resp = ApiClient.api.getEvents()
+                    if (resp.isSuccessful) {
+                        val fresh = resp.body()!!.map { it.toEvent() }
+                        events.clear()
+                        events.addAll(fresh)
+                    }
+                } catch (_: Exception) {}
+            }
             AdminDashboardScreen(
                 events = events,
                 onCreateEvent = { navController.navigate(Routes.adminEventForm()) },
@@ -247,40 +255,51 @@ fun AppNavigation() {
                 existingEvent = event,
                 categories = categories,
                 onSave = { savedEvent ->
-                    scope.launch {
-                        try {
-                            if (event != null) {
-                                val req = UpdateEventRequest(
-                                    title = savedEvent.title,
-                                    description = savedEvent.description,
-                                    date = savedEvent.date,
-                                    time = savedEvent.time,
-                                    location = savedEvent.location,
-                                    categoryId = savedEvent.category.id,
-                                    organizer = savedEvent.organizer,
-                                    maxParticipants = savedEvent.maxParticipants,
-                                )
-                                val resp = ApiClient.api.updateEvent(ApiClient.bearerToken, savedEvent.id, req)
-                                if (resp.isSuccessful) {
-                                    val idx = events.indexOfFirst { it.id == savedEvent.id }
-                                    if (idx >= 0) events[idx] = resp.body()!!.toEvent()
-                                }
+                    try {
+                        if (event != null) {
+                            val req = UpdateEventRequest(
+                                title = savedEvent.title,
+                                description = savedEvent.description,
+                                date = savedEvent.date,
+                                time = savedEvent.time,
+                                location = savedEvent.location,
+                                categoryId = savedEvent.category.id,
+                                organizer = savedEvent.organizer,
+                                maxParticipants = savedEvent.maxParticipants,
+                            )
+                            val resp = ApiClient.api.updateEvent(ApiClient.bearerToken, savedEvent.id, req)
+                            if (resp.isSuccessful) {
+                                val idx = events.indexOfFirst { it.id == savedEvent.id }
+                                if (idx >= 0) events[idx] = resp.body()!!.toEvent()
+                                navController.popBackStack()
+                                null
+                            } else if (resp.code() == 409) {
+                                "Max participants cannot be less than the number of already registered participants"
                             } else {
-                                val req = CreateEventRequest(
-                                    title = savedEvent.title,
-                                    description = savedEvent.description,
-                                    date = savedEvent.date,
-                                    time = savedEvent.time,
-                                    location = savedEvent.location,
-                                    categoryId = savedEvent.category.id,
-                                    organizer = savedEvent.organizer,
-                                    maxParticipants = savedEvent.maxParticipants,
-                                )
-                                val resp = ApiClient.api.createEvent(ApiClient.bearerToken, req)
-                                if (resp.isSuccessful) events.add(resp.body()!!.toEvent())
+                                "Failed to save event"
                             }
-                        } catch (_: Exception) {}
-                        navController.popBackStack()
+                        } else {
+                            val req = CreateEventRequest(
+                                title = savedEvent.title,
+                                description = savedEvent.description,
+                                date = savedEvent.date,
+                                time = savedEvent.time,
+                                location = savedEvent.location,
+                                categoryId = savedEvent.category.id,
+                                organizer = savedEvent.organizer,
+                                maxParticipants = savedEvent.maxParticipants,
+                            )
+                            val resp = ApiClient.api.createEvent(ApiClient.bearerToken, req)
+                            if (resp.isSuccessful) {
+                                events.add(resp.body()!!.toEvent())
+                                navController.popBackStack()
+                                null
+                            } else {
+                                "Failed to create event"
+                            }
+                        }
+                    } catch (_: Exception) {
+                        "Network error — is the server running?"
                     }
                 },
                 onBack = { navController.popBackStack() }

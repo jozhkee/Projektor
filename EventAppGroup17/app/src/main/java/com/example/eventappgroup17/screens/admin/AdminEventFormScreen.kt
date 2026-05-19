@@ -8,11 +8,13 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.Button
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuBox
@@ -31,7 +33,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import kotlinx.coroutines.launch
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -44,10 +48,11 @@ import com.example.eventappgroup17.model.Event
 fun AdminEventFormScreen(
     existingEvent: Event?,
     categories: List<Category>,
-    onSave: (Event) -> Unit,
+    onSave: suspend (Event) -> String?,
     onBack: () -> Unit
 ) {
     val isEditing = existingEvent != null
+    val scope = rememberCoroutineScope()
 
     var title by remember { mutableStateOf(existingEvent?.title ?: "") }
     var description by remember { mutableStateOf(existingEvent?.description ?: "") }
@@ -62,6 +67,9 @@ fun AdminEventFormScreen(
     var titleError by remember { mutableStateOf("") }
     var dateError by remember { mutableStateOf("") }
     var locationError by remember { mutableStateOf("") }
+    var maxParticipantsError by remember { mutableStateOf("") }
+    var saveError by remember { mutableStateOf("") }
+    var isSaving by remember { mutableStateOf(false) }
 
     Scaffold(
         topBar = {
@@ -185,11 +193,21 @@ fun AdminEventFormScreen(
 
             OutlinedTextField(
                 value = maxParticipants,
-                onValueChange = { maxParticipants = it },
+                onValueChange = { maxParticipants = it; maxParticipantsError = "" },
                 label = { Text("Max Participants (optional)") },
+                isError = maxParticipantsError.isNotEmpty(),
+                supportingText = { if (maxParticipantsError.isNotEmpty()) Text(maxParticipantsError) },
                 modifier = Modifier.fillMaxWidth(),
                 singleLine = true
             )
+
+            if (saveError.isNotEmpty()) {
+                Text(
+                    text = saveError,
+                    color = MaterialTheme.colorScheme.error,
+                    fontSize = 13.sp
+                )
+            }
 
             Spacer(modifier = Modifier.height(8.dp))
 
@@ -199,7 +217,8 @@ fun AdminEventFormScreen(
             ) {
                 OutlinedButton(
                     onClick = onBack,
-                    modifier = Modifier.weight(1f)
+                    modifier = Modifier.weight(1f),
+                    enabled = !isSaving
                 ) { Text("Cancel") }
 
                 Button(
@@ -207,25 +226,49 @@ fun AdminEventFormScreen(
                         titleError = if (title.isBlank()) "Title is required" else ""
                         dateError = if (date.isBlank()) "Date is required" else ""
                         locationError = if (location.isBlank()) "Location is required" else ""
-                        if (listOf(titleError, dateError, locationError).all { it.isEmpty() }) {
-                            onSave(
-                                Event(
-                                    id = existingEvent?.id ?: 0,
-                                    title = title.trim(),
-                                    description = description.trim(),
-                                    date = date.trim(),
-                                    time = time.trim(),
-                                    location = location.trim(),
-                                    organizer = organizer.trim(),
-                                    category = selectedCategory,
-                                    participantCount = existingEvent?.participantCount ?: 0,
-                                    maxParticipants = maxParticipants.trim().toIntOrNull()
+                        val maxInt = maxParticipants.trim().toIntOrNull()
+                        val currentCount = existingEvent?.participantCount ?: 0
+                        maxParticipantsError = if (maxParticipants.isNotBlank() && maxInt == null) {
+                            "Must be a number"
+                        } else if (maxInt != null && maxInt < currentCount) {
+                            "Cannot be less than current registrations ($currentCount)"
+                        } else ""
+                        saveError = ""
+                        if (listOf(titleError, dateError, locationError, maxParticipantsError).all { it.isEmpty() }) {
+                            scope.launch {
+                                isSaving = true
+                                val error = onSave(
+                                    Event(
+                                        id = existingEvent?.id ?: 0,
+                                        title = title.trim(),
+                                        description = description.trim(),
+                                        date = date.trim(),
+                                        time = time.trim(),
+                                        location = location.trim(),
+                                        organizer = organizer.trim(),
+                                        category = selectedCategory,
+                                        participantCount = currentCount,
+                                        maxParticipants = maxInt
+                                    )
                                 )
-                            )
+                                isSaving = false
+                                if (error != null) saveError = error
+                            }
                         }
                     },
-                    modifier = Modifier.weight(1f)
-                ) { Text(if (isEditing) "Save Changes" else "Create Event") }
+                    modifier = Modifier.weight(1f),
+                    enabled = !isSaving
+                ) {
+                    if (isSaving) {
+                        CircularProgressIndicator(
+                            modifier = Modifier.size(18.dp),
+                            strokeWidth = 2.dp,
+                            color = MaterialTheme.colorScheme.onPrimary
+                        )
+                    } else {
+                        Text(if (isEditing) "Save Changes" else "Create Event")
+                    }
+                }
             }
 
             Spacer(modifier = Modifier.height(16.dp))

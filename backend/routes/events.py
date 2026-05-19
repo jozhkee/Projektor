@@ -1,6 +1,6 @@
 from flask import Blueprint, request, jsonify
 from flask_jwt_extended import jwt_required, get_jwt
-from models import Event, Category, Registration
+from models import Event, Category, Registration, User
 
 events_bp = Blueprint('events', __name__, url_prefix='/events')
 
@@ -89,8 +89,16 @@ def update_event(event_id):
             return jsonify({'error': 'category not found'}), 404
         event.category = category
 
-    for field in ('title', 'description', 'date', 'time', 'location', 'organizer',
-                  'max_participants', 'image_url'):
+    if 'max_participants' in data:
+        new_max = data['max_participants']
+        if new_max is not None and new_max < event.participant_count:
+            return jsonify({
+                'error': f'Cannot set max participants to {new_max}: '
+                         f'{event.participant_count} users are already registered'
+            }), 409
+        event.max_participants = new_max
+
+    for field in ('title', 'description', 'date', 'time', 'location', 'organizer', 'image_url'):
         if field in data:
             setattr(event, field, data[field])
 
@@ -124,8 +132,8 @@ def list_participants(event_id):
         return jsonify({'error': 'event not found'}), 404
 
     registrations = (
-        Registration.select(Registration)
-        .join_from(Registration, Registration.user.rel_model)
+        Registration.select(Registration, User)
+        .join(User)
         .where(Registration.event == event)
     )
     participants = [

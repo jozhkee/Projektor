@@ -38,6 +38,7 @@ local.properties
 # Python
 __pycache__/
 *.py[cod]
+.env
 
 # SQLite database (dev artifact — seed with seed.py)
 *.db

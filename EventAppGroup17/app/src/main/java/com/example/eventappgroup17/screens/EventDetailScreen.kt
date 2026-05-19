@@ -23,6 +23,7 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -37,6 +38,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -45,6 +47,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.eventappgroup17.model.Event
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -53,10 +56,11 @@ fun EventDetailScreen(
     isLoggedIn: Boolean,
     isRegistered: Boolean,
     isFull: Boolean,
-    onRegister: () -> Unit,
+    onRegister: suspend () -> Unit,
     onBack: () -> Unit
 ) {
-    var registered by remember { mutableStateOf(isRegistered) }
+    val scope = rememberCoroutineScope()
+    var isRegistering by remember { mutableStateOf(false) }
 
     Scaffold(
         topBar = {
@@ -151,7 +155,7 @@ fun EventDetailScreen(
                         Text("Sign in to register for this event")
                     }
                 }
-                registered -> {
+                isRegistered -> {
                     Button(
                         onClick = {},
                         modifier = Modifier.fillMaxWidth(),
@@ -183,12 +187,24 @@ fun EventDetailScreen(
                 else -> {
                     Button(
                         onClick = {
-                            onRegister()
-                            registered = true
+                            scope.launch {
+                                isRegistering = true
+                                onRegister()
+                                isRegistering = false
+                            }
                         },
-                        modifier = Modifier.fillMaxWidth()
+                        modifier = Modifier.fillMaxWidth(),
+                        enabled = !isRegistering
                     ) {
-                        Text("Register for this Event", fontSize = 16.sp)
+                        if (isRegistering) {
+                            CircularProgressIndicator(
+                                modifier = Modifier.size(18.dp),
+                                strokeWidth = 2.dp,
+                                color = MaterialTheme.colorScheme.onPrimary
+                            )
+                        } else {
+                            Text("Register for this Event", fontSize = 16.sp)
+                        }
                     }
                 }
             }

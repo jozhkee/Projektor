@@ -18,7 +18,7 @@ EVENTS = [
         'date': '2026-05-20', 'time': '14:00',
         'location': 'Room A101, NOVA IMS',
         'category': 'Workshop', 'organizer': 'Prof. João Silva',
-        'participant_count': 18, 'max_participants': 30,
+        'max_participants': 30,
     },
     {
         'title': 'Data Science Career Talk',
@@ -26,7 +26,7 @@ EVENTS = [
         'date': '2026-05-22', 'time': '18:00',
         'location': 'Auditorium, NOVA IMS',
         'category': 'Talk', 'organizer': 'Career Services',
-        'participant_count': 45, 'max_participants': 100,
+        'max_participants': 100,
     },
     {
         'title': '5-a-side Football Tournament',
@@ -34,7 +34,7 @@ EVENTS = [
         'date': '2026-05-25', 'time': '10:00',
         'location': 'University Sports Ground',
         'category': 'Sports', 'organizer': 'Sports Committee',
-        'participant_count': 32, 'max_participants': 50,
+        'max_participants': 50,
     },
     {
         'title': 'Machine Learning Study Group',
@@ -42,7 +42,7 @@ EVENTS = [
         'date': '2026-05-19', 'time': '16:00',
         'location': 'Library Room 3, NOVA IMS',
         'category': 'Study Session', 'organizer': 'Student Association',
-        'participant_count': 12, 'max_participants': 20,
+        'max_participants': 20,
     },
     {
         'title': 'Fado Night',
@@ -50,7 +50,7 @@ EVENTS = [
         'date': '2026-05-30', 'time': '20:00',
         'location': 'Campus Cafeteria',
         'category': 'Cultural', 'organizer': 'Cultural Club',
-        'participant_count': 60, 'max_participants': 80,
+        'max_participants': 80,
     },
     {
         'title': 'Tech Startup Meetup',
@@ -58,7 +58,7 @@ EVENTS = [
         'date': '2026-06-03', 'time': '19:00',
         'location': 'Innovation Hub, Lisbon',
         'category': 'Meetup', 'organizer': 'Entrepreneurship Club',
-        'participant_count': 27, 'max_participants': None,
+        'max_participants': None,
     },
 ]
 
@@ -104,17 +104,21 @@ def seed():
                 'location': e['location'],
                 'category': cat_map[e['category']],
                 'organizer': e['organizer'],
-                'participant_count': e['participant_count'],
+                'participant_count': 0,
                 'max_participants': e['max_participants'],
             }
         )
         event_list.append(event)
 
     for user_idx, event_idx in REGISTRATIONS:
-        Registration.get_or_create(
+        _, created = Registration.get_or_create(
             user=user_list[user_idx],
             event=event_list[event_idx],
         )
+        if created:
+            Event.update(participant_count=Event.participant_count + 1).where(
+                Event.id == event_list[event_idx].id
+            ).execute()
 
     db.close()
     print('Database seeded successfully.')
