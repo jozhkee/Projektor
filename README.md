@@ -7,7 +7,7 @@ A mobile app for discovering and managing events, built for the NOVA IMS Mobile 
 - **Android:** Kotlin + Jetpack Compose
 - **Navigation:** Navigation Compose
 - **Networking:** Retrofit 2 + OkHttp + Gson
-- **Backend:** Python / Flask + Peewee ORM + SQLite
+- **Backend:** Python / Flask + Peewee ORM + MySQL
 
 ## Project Structure
 
