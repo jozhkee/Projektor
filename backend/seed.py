@@ -2,10 +2,24 @@
 Run once to populate the database with the same sample data used in MockData.kt.
     python seed.py
 """
+
+import os
+
 from werkzeug.security import generate_password_hash
 from models import db, ALL_TABLES, Category, User, Event, Registration
+from dotenv import load_dotenv
 
-DB_PATH = 'eventapp.db'
+load_dotenv()
+
+DB_HOST = os.environ.get('DB_HOST', 'localhost')
+DB_PORT = int(os.environ.get('DB_PORT', 3306))
+DB_USER = os.environ.get('DB_USER', 'root')
+DB_PASSWORD = os.environ.get('DB_PASSWORD', '')
+DB_NAME = os.environ.get('DB_NAME', 'eventapp')
+
+def seed():
+    db.init(DB_NAME, host=DB_HOST, port=DB_PORT, user=DB_USER, password=DB_PASSWORD)
+    db.connect()
 
 CATEGORIES = [
     'Workshop', 'Talk', 'Sports', 'Study Session', 'Cultural', 'Meetup'
@@ -72,7 +86,7 @@ REGISTRATIONS = [(0, 0), (0, 3)]
 
 
 def seed():
-    db.init(DB_PATH)
+    db.init(DB_NAME, host=DB_HOST, port=DB_PORT, user=DB_USER, password=DB_PASSWORD)
     db.connect()
     db.create_tables(ALL_TABLES, safe=True)
 

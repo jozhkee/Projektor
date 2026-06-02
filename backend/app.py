@@ -13,10 +13,13 @@ from routes.events import events_bp
 from routes.categories import categories_bp
 from routes.registrations import registrations_bp
 
-_BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-DB_PATH = os.environ.get('DB_PATH', os.path.join(_BASE_DIR, 'eventapp.db'))
-
+DB_HOST = os.environ.get('DB_HOST', 'localhost')
+DB_PORT = int(os.environ.get('DB_PORT', 3306))
+DB_USER = os.environ.get('DB_USER', 'root')
+DB_PASSWORD = os.environ.get('DB_PASSWORD', '')
+DB_NAME = os.environ.get('DB_NAME', 'eventapp')
 JWT_SECRET = os.environ.get('JWT_SECRET_KEY')
+
 if not JWT_SECRET:
     raise RuntimeError('JWT_SECRET_KEY is not set. Copy .env.example to .env and fill it in.')
 
@@ -29,7 +32,7 @@ def create_app():
     CORS(app)
     JWTManager(app)
 
-    db.init(DB_PATH)
+    db.init(DB_NAME, host=DB_HOST, port=DB_PORT, user=DB_USER, password=DB_PASSWORD)
     with db:
         db.create_tables(ALL_TABLES, safe=True)
 
@@ -53,4 +56,4 @@ def create_app():
 
 if __name__ == '__main__':
     app = create_app()
-    app.run(debug=True, port=5000)
+    app.run(host='0.0.0.0', debug=True, port=5000)

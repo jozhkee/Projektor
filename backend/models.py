@@ -1,9 +1,9 @@
 from peewee import (
-    SqliteDatabase, Model, AutoField, CharField,
+    MySQLDatabase, Model, AutoField, CharField,
     TextField, IntegerField, BooleanField, ForeignKeyField
 )
 
-db = SqliteDatabase(None)  # initialized in app.py with the path
+db = MySQLDatabase(None)  # initialized in app.py with credentials
 
 
 class BaseModel(Model):
