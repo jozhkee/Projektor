@@ -12,6 +12,13 @@ interface ApiService {
     @POST("auth/register")
     suspend fun register(@Body request: RegisterRequest): Response<AuthResponse>
 
+    @PUT("auth/users/{userId}")
+    suspend fun updateProfile(
+        @Header("Authorization") token: String,
+        @Path("userId") userId: Int,
+        @Body request: UpdateProfileRequest,
+    ): Response<UserDto>
+
     // Events
     @GET("events/")
     suspend fun getEvents(

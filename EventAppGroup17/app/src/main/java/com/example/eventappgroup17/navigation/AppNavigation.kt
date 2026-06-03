@@ -33,6 +33,8 @@ import com.example.eventappgroup17.screens.admin.AdminDashboardScreen
 import com.example.eventappgroup17.screens.admin.AdminEventFormScreen
 import com.example.eventappgroup17.screens.admin.AdminParticipantsScreen
 import kotlinx.coroutines.launch
+import com.example.eventappgroup17.screens.EditProfileScreen
+import com.example.eventappgroup17.data.network.UpdateProfileRequest
 
 object Routes {
     const val LOGIN = "login"
@@ -45,6 +47,7 @@ object Routes {
     const val ADMIN_PARTICIPANTS = "admin_participants/{eventId}"
     const val ADMIN_CATEGORIES = "admin_categories"
 
+    const val EDIT_PROFILE = "edit_profile"
     fun eventDetail(id: Int) = "event_detail/$id"
     fun adminEventForm(id: Int? = null) = if (id != null) "admin_event_form?eventId=$id" else "admin_event_form"
     fun adminParticipants(id: Int) = "admin_participants/$id"
@@ -209,7 +212,8 @@ fun AppNavigation() {
                     }
                 },
                 onEventClick = { navController.navigate(Routes.eventDetail(it.id)) },
-                onBack = { navController.popBackStack() }
+                onBack = { navController.popBackStack() },
+                onEditProfile = { navController.navigate(Routes.EDIT_PROFILE) }
             )
         }
 
@@ -343,6 +347,35 @@ fun AppNavigation() {
                             val resp = ApiClient.api.deleteCategory(ApiClient.bearerToken, category.id)
                             if (resp.isSuccessful) categories.remove(category)
                         } catch (_: Exception) {}
+                    }
+                },
+                onBack = { navController.popBackStack() }
+            )
+        }
+
+        composable(Routes.EDIT_PROFILE) {
+            val user = currentUser ?: return@composable
+            EditProfileScreen(
+                currentName = user.name,
+                onSave = { newName, newPassword, currentPassword ->
+                    try {
+                        val resp = ApiClient.api.updateProfile(
+                            ApiClient.bearerToken,
+                            user.id,
+                            UpdateProfileRequest(
+                                name = newName,
+                                password = newPassword,
+                                currentPassword = currentPassword
+                            )
+                        )
+                        if (resp.isSuccessful) {
+                            currentUser = resp.body()!!.toUser()
+                            null
+                        } else {
+                            "current password is incorrect"
+                        }
+                    } catch (e: Exception) {
+                        "Network error — is the server running?"
                     }
                 },
                 onBack = { navController.popBackStack() }

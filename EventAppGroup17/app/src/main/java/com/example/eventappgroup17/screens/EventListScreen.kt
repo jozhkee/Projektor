@@ -87,7 +87,7 @@ fun EventListScreen(
                                 enabled = false
                             )
                             DropdownMenuItem(
-                                text = { Text("My Events") },
+                                text = { Text("My Area") },
                                 onClick = { menuExpanded = false; onUserAreaClick() }
                             )
                             DropdownMenuItem(

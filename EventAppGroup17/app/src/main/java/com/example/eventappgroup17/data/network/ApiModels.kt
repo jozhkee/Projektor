@@ -41,6 +41,12 @@ data class CreateRegistrationRequest(
 
 data class CreateCategoryRequest(val name: String)
 
+data class UpdateProfileRequest(
+    val name: String? = null,
+    val password: String? = null,
+    @SerializedName("current_password") val currentPassword: String? = null,
+)
+
 // ── Responses ─────────────────────────────────────────────────────────────────
 
 data class UserDto(

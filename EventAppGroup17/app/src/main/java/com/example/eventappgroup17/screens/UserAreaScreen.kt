@@ -2,6 +2,7 @@ package com.example.eventappgroup17.screens
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -25,6 +26,7 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -51,6 +53,7 @@ fun UserAreaScreen(
     registeredEvents: List<Event>,
     onCancelRegistration: (Int) -> Unit,
     onEventClick: (Event) -> Unit,
+    onEditProfile: () -> Unit,
     onBack: () -> Unit
 ) {
     val events = remember { mutableStateListOf(*registeredEvents.toTypedArray()) }
@@ -129,6 +132,14 @@ fun UserAreaScreen(
                                 fontSize = 13.sp,
                                 color = MaterialTheme.colorScheme.onPrimaryContainer
                             )
+                            Spacer(modifier = Modifier.height(4.dp))
+                            OutlinedButton(
+                                onClick = onEditProfile,
+                                contentPadding = PaddingValues(horizontal = 12.dp, vertical = 4.dp),
+                                modifier = Modifier.height(30.dp)
+                            ) {
+                                Text("Edit Profile", fontSize = 11.sp)
+                            }
                         }
                     }
                 }
