@@ -7,7 +7,7 @@ A mobile app for discovering and managing events, built for the NOVA IMS Mobile 
 - **Android:** Kotlin + Jetpack Compose
 - **Navigation:** Navigation Compose
 - **Networking:** Retrofit 2 + OkHttp + Gson
-- **Backend:** Python / Flask + Peewee ORM + SQLite
+- **Backend:** Python / Flask + Peewee ORM + MySQL
 
 ## Project Structure
 
@@ -83,6 +83,6 @@ Sample accounts created by `seed.py`:
 ### Android App
 
 1. Open `EventAppGroup17/` in Android Studio
-2. The emulator connects to the backend at `http://10.0.2.2:5000` by default
+2. The emulator connects to the backend at `https://projektor.fog.pt/` by default
 3. For a physical device, change `BASE_URL` in `data/network/ApiClient.kt` to your machine's LAN IP
 4. Run on an emulator or physical device (minSdk 24)

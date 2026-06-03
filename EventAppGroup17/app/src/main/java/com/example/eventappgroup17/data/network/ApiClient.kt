@@ -8,7 +8,8 @@ import retrofit2.converter.gson.GsonConverterFactory
 object ApiClient {
     // 10.0.2.2 = Android emulator's alias for host localhost.
     // Change to your machine's LAN IP when testing on a physical device.
-    private const val BASE_URL = "http://https://projektor.fog.pt/"
+    // https://projektor.fog.pt is our hosted API
+    private const val BASE_URL = "https://projektor.fog.pt/"
 
     var token: String? = null
     val bearerToken get() = "Bearer $token"
