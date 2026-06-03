@@ -35,6 +35,9 @@ import com.example.eventappgroup17.screens.admin.AdminParticipantsScreen
 import kotlinx.coroutines.launch
 import com.example.eventappgroup17.screens.EditProfileScreen
 import com.example.eventappgroup17.data.network.UpdateProfileRequest
+import android.content.Context
+import androidx.compose.ui.platform.LocalContext
+import com.example.eventappgroup17.SessionManager
 
 object Routes {
     const val LOGIN = "login"
@@ -64,6 +67,10 @@ fun AppNavigation() {
     // Pair<registrationId, eventId> — need registration ID to cancel
     val registrations = remember { mutableStateListOf<Pair<Int, Int>>() }
 
+    val context = LocalContext.current
+    val sessionManager = remember { SessionManager(context) }
+
+
     suspend fun loadSharedData(userId: Int) {
         val eventsResp = ApiClient.api.getEvents()
         if (eventsResp.isSuccessful) {
@@ -88,13 +95,31 @@ fun AppNavigation() {
         events.clear()
         categories.clear()
         registrations.clear()
+        sessionManager.clearSession()
+    }
+
+    LaunchedEffect(Unit) {
+        if (sessionManager.hasSession()) {
+            val token = sessionManager.getToken()!!
+            val user = User(
+                id = sessionManager.getUserId(),
+                name = sessionManager.getUserName()!!,
+                email = sessionManager.getUserEmail()!!,
+                isAdmin = sessionManager.getIsAdmin()
+            )
+            ApiClient.token = token
+            currentUser = user
+            loadSharedData(user.id)
+            val dest = if (user.isAdmin) Routes.ADMIN_DASHBOARD else Routes.EVENT_LIST
+            navController.navigate(dest) { popUpTo(Routes.LOGIN) { inclusive = true } }
+        }
     }
 
     NavHost(navController = navController, startDestination = Routes.LOGIN) {
 
         composable(Routes.LOGIN) {
             LoginScreen(
-                onLogin = { email, password ->
+                onLogin = { email, password, rememberMe ->
                     try {
                         val response = ApiClient.api.login(LoginRequest(email, password))
                         if (response.isSuccessful) {
@@ -103,6 +128,15 @@ fun AppNavigation() {
                             val user = body.user.toUser()
                             currentUser = user
                             loadSharedData(user.id)
+                            if (rememberMe) {
+                                sessionManager.saveSession(
+                                    token = body.token,
+                                    userId = user.id,
+                                    name = user.name,
+                                    email = user.email,
+                                    isAdmin = user.isAdmin
+                                )
+                            }
                             val dest = if (user.isAdmin) Routes.ADMIN_DASHBOARD else Routes.EVENT_LIST
                             navController.navigate(dest) { popUpTo(Routes.LOGIN) { inclusive = true } }
                             null

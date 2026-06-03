@@ -2,14 +2,17 @@ package com.example.eventappgroup17.screens
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Button
+import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
@@ -32,7 +35,7 @@ import kotlinx.coroutines.launch
 
 @Composable
 fun LoginScreen(
-    onLogin: suspend (email: String, password: String) -> String?,
+    onLogin: suspend (email: String, password: String, rememberMe: Boolean) -> String?,
     onNavigateToRegister: () -> Unit
 ) {
     val scope = rememberCoroutineScope()
@@ -42,6 +45,7 @@ fun LoginScreen(
     var passwordError by remember { mutableStateOf("") }
     var loginError by remember { mutableStateOf("") }
     var isLoading by remember { mutableStateOf(false) }
+    var rememberMe by remember { mutableStateOf(false) }
 
     Column(
         modifier = Modifier
@@ -100,7 +104,25 @@ fun LoginScreen(
             enabled = !isLoading
         )
 
-        Spacer(modifier = Modifier.height(24.dp))
+        Spacer(modifier = Modifier.height(4.dp))
+
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier.fillMaxWidth().padding(start = 4.dp)
+        ) {
+            Checkbox(
+                checked = rememberMe,
+                onCheckedChange = { rememberMe = it },
+                enabled = !isLoading,
+                modifier = Modifier.size(20.dp)
+            )
+            Spacer(modifier = Modifier.width(6.dp))
+            Text("Remember me", fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        }
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        Spacer(modifier = Modifier.height(8.dp))
 
         Button(
             onClick = {
@@ -114,7 +136,7 @@ fun LoginScreen(
                 if (emailError.isEmpty() && passwordError.isEmpty()) {
                     scope.launch {
                         isLoading = true
-                        val error = onLogin(email, password)
+                        val error = onLogin(email, password, rememberMe)
                         isLoading = false
                         if (error != null) loginError = error
                     }
