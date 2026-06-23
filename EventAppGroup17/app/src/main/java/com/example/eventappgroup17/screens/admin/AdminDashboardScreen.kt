@@ -56,6 +56,15 @@ fun AdminDashboardScreen(
 ) {
     var eventToDelete by remember { mutableStateOf<Event?>(null) }
 
+    var searchQuery by remember { mutableStateOf("") }
+
+    val filteredEvents = events.filter { event ->
+        searchQuery.isBlank() ||
+                event.title.contains(searchQuery, ignoreCase = true) ||
+                event.location.contains(searchQuery, ignoreCase = true) ||
+                event.category.name.contains(searchQuery, ignoreCase = true)
+    }
+    
     if (eventToDelete != null) {
         AlertDialog(
             onDismissRequest = { eventToDelete = null },
@@ -106,6 +115,19 @@ fun AdminDashboardScreen(
             verticalArrangement = Arrangement.spacedBy(10.dp)
         ) {
             item {
+                OutlinedTextField(
+                    value = searchQuery,
+                    onValueChange = { searchQuery = it },
+                    placeholder = { Text("Search events...") },
+                    leadingIcon = { Icon(Icons.Default.Search, contentDescription = null) },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 6.dp),
+                    singleLine = true
+                )
+            }
+            
+            item {
                 Spacer(modifier = Modifier.height(4.dp))
                 Text(
                     text = "Events (${events.size})",
@@ -114,7 +136,7 @@ fun AdminDashboardScreen(
                 )
             }
 
-            items(events) { event ->
+            items(filteredEvents) { event ->
                 Card(
                     modifier = Modifier.fillMaxWidth(),
                     elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
